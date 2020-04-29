@@ -18,8 +18,15 @@ clientLoop(User) ->
         {error, not_a_member} ->
             io:format("You can't start a game because you are not in the room!~n"),
             clientLoop(User);
+        {error, four_players} ->
+            io:format("You can't start a game because there are not 4 players in the room"),
+            clientLoop(User);
         {start_game, Other} ->
-            io:format("~p wants to play! Ok?~n", [Other]);  
+            io:format("~p wants to play! Ok?~n", [Other]),
+            clientLoop(User);
+        {ok, start_game} ->
+            io:format("Game is about to start!"),
+            clientLoop(User);
         _ -> 
             clientLoop(User)
     end.
