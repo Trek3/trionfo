@@ -1,40 +1,43 @@
 -module(trionfo_client).
--export([start_client/2, start_game/2, exit_game/2]).
+-export([start_client/1, start_game/1, exit_game/1, accept_game/1]).
 
-start_client(Node, User) -> register(player, spawn(node(), fun() -> connect(Node, User) end)).
+start_client(Node) -> register(player, spawn(node(), fun() -> connect(Node) end)).
 
-connect(Node, User) -> 
-    {server, Node} ! {new, User, {player, node()}},
-    clientLoop(User).
+connect(Node) -> 
+    {server, Node} ! {new, {player, node()}},
+    clientLoop().
 
-clientLoop(User) ->
+clientLoop() ->
     receive 
         {connected, Node} ->
             io:format("You successfully joined the game of ~p!~n", [Node]),
-            clientLoop(User);
+            clientLoop();
         {error, full} ->
             io:format("The room is full already! Try again later!~n"),
-            clientLoop(User);
+            clientLoop();
         {error, not_a_member} ->
             io:format("You can't start a game because you are not in the room!~n"),
-            clientLoop(User);
+            clientLoop();
         {error, four_players} ->
             io:format("You can't start a game because there are not 4 players in the room"),
-            clientLoop(User);
+            clientLoop();
         {start_game, Other} ->
             io:format("~p wants to play! Ok?~n", [Other]),
-            clientLoop(User);
+            clientLoop();
         {ok, start_game} ->
             io:format("Game is about to start!"),
-            clientLoop(User);
+            clientLoop();
         _ -> 
-            clientLoop(User)
+            clientLoop()
     end.
 
-start_game(User, Node) ->
-    {server, Node} ! {start_game, User, {player, node()}}.
+accept_game(Node) ->
+    {server, Node} ! {yes_start_game, {player, node()}}.
 
-exit_game(User, Node) ->
+start_game(Node) ->
+    {server, Node} ! {start_game, {player, node()}}.
+
+exit_game(Node) ->
     unregister(player),
-    {server, Node} ! {exit, User, {player, node()}}.
+    {server, Node} ! {exit, {player, node()}}.
     
